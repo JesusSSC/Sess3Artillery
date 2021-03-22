@@ -1,0 +1,40 @@
+config:
+  target: "https://api.todoist.com"
+  phases:
+    - duration: 4
+      arrivalRate: 1
+      name: "Phase 1"
+  defaults:
+    headers:
+      Authorization: Bearer 8eab215d54f422226110b09fdb96f30a7e6f7aff
+      #Authorization: Bearer {{$processEnviroment.TOKEN}}
+      Content-type: application/json
+      X-Requested-Id: uuidgen
+scenarios:
+  - flow:
+      - post: # Create a task
+          url: "/rest/v1/tasks"
+          json:
+            content: "Task_test_x"
+          capture:
+            json: "$.id"
+            as: "idTask"       
+      - log: "Current id is {{ idTask }}"
+      - get: # Get the task that was created and print it's content
+          url: "/rest/v1/tasks/{{ idTask }}"
+          capture:
+            json: "$.content"
+            as: "contentx"
+      - log: "Task created has {{contentx}}"
+      - get: # Get all active task
+          url: "/rest/v1/tasks"
+      - post: # Update the task 
+          url: "/rest/v1/tasks/{{ idTask }}"
+          json:
+            content: "Task_test_x_2"
+      - post: # Set to closed the created task
+          url: "/rest/v1/tasks/{{ idTask }}/close"
+      - post: # Reopen a task
+          url: "/rest/v1/tasks/{{ idTask }}/reopen"
+      - delete:
+          url: "/rest/v1/tasks/{{ idTask }}"
